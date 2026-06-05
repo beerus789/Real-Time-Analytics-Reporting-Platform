@@ -80,6 +80,10 @@ Use [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the public stack:
 - Neon for PostgreSQL
 - Upstash Redis or another Redis-compatible provider for Celery/rate limiting
 
+## API Guide
+
+Use [docs/API_GUIDE.md](docs/API_GUIDE.md) for shareable API documentation with endpoint summaries, request/response examples, auth details, roles, errors, ingestion, dashboards, and public sharing.
+
 ## Must-Have Coverage
 
 - JWT auth with refresh cookie.
