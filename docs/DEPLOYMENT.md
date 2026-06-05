@@ -87,6 +87,23 @@ PUBLIC_SHARE_BASE_URL=https://your-vercel-app.vercel.app
 
 Redeploy the Render API and worker.
 
+### Single Render Service Option
+
+If Render asks you to pay for a separate Background Worker, you can run the API and
+Celery worker together for demo deployments.
+
+Use one Render Docker Web Service:
+
+```text
+Root Directory: apps/api
+Dockerfile Path: apps/api/Dockerfile.prod
+Docker Build Context Directory: apps/api
+Docker Command: sh /app/scripts/start_render.sh
+```
+
+This command runs migrations, starts Celery in the background, then starts Uvicorn.
+For production traffic, use a separate Background Worker service.
+
 ## 5. Seed Public Demo Data
 
 After migrations run successfully, open a Render shell for `pulseboard-api` and run:
