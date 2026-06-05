@@ -136,9 +136,13 @@ async def test_public_share_read_only_and_authenticated_write_required(client: A
     )
     shared = await client.post(
         f"/api/v1/dashboards/{dashboard.json()['id']}/share",
-        headers={"Authorization": f"Bearer {token}"},
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Origin": "https://frontend.example.com",
+        },
     )
     assert shared.status_code == 200, shared.text
+    assert shared.json()["public_url"].startswith("https://frontend.example.com/share/")
 
     public = await client.get(f"/api/v1/public/dashboards/{shared.json()['share_token']}")
     assert public.status_code == 200, public.text

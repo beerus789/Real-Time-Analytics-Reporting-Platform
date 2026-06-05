@@ -1,6 +1,7 @@
+from urllib.parse import urlsplit
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import AuthContext, get_current_context, require_roles
@@ -154,6 +155,7 @@ async def widget_data(
 @router.post("/{dashboard_id}/share", response_model=ShareResponse)
 async def share_dashboard(
     dashboard_id: UUID,
+    request: Request,
     context: AuthContext = Depends(require_roles(Role.OWNER, Role.ADMIN, Role.ANALYST)),
     session: AsyncSession = Depends(get_db_session),
     settings: Settings = Depends(get_settings),
@@ -161,7 +163,19 @@ async def share_dashboard(
     return await DashboardService(session, settings).share(
         organization_id=context.organization_id,
         dashboard_id=dashboard_id,
+        public_base_url=request_public_base_url(request),
     )
+
+
+def request_public_base_url(request: Request) -> str | None:
+    raw_url = request.headers.get("origin") or request.headers.get("referer")
+    if not raw_url:
+        return None
+
+    parsed = urlsplit(raw_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return None
+    return f"{parsed.scheme}://{parsed.netloc}"
 
 
 @public_router.get("/dashboards/{share_token}", response_model=DashboardDetailResponse)

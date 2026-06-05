@@ -157,7 +157,13 @@ class DashboardService:
         await self.session.delete(widget)
         await self.session.commit()
 
-    async def share(self, *, organization_id: UUID, dashboard_id: UUID) -> ShareResponse:
+    async def share(
+        self,
+        *,
+        organization_id: UUID,
+        dashboard_id: UUID,
+        public_base_url: str | None = None,
+    ) -> ShareResponse:
         dashboard = await self.dashboards.get_for_org(
             organization_id=organization_id,
             dashboard_id=dashboard_id,
@@ -167,7 +173,7 @@ class DashboardService:
         token = self.dashboards.ensure_public_share(dashboard)
         await self.session.commit()
         base_url = str(
-            self.settings.public_share_base_url or self.settings.frontend_origin
+            public_base_url or self.settings.public_share_base_url or self.settings.frontend_origin
         ).rstrip("/")
         return ShareResponse(
             dashboard_id=dashboard.id,
