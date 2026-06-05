@@ -1,0 +1,77 @@
+services:
+  - type: web
+    name: pulseboard-api
+    runtime: docker
+    rootDir: apps/api
+    dockerfilePath: ./Dockerfile.prod
+    dockerCommand: alembic upgrade head && uvicorn app.main:create_app --factory --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: APP_NAME
+        value: Pulseboard Analytics
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: CELERY_BROKER_URL
+        sync: false
+      - key: CELERY_RESULT_BACKEND
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: REFRESH_COOKIE_PATH
+        value: /
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: PUBLIC_SHARE_BASE_URL
+        sync: false
+      - key: INGESTION_RATE_LIMIT_PER_MINUTE
+        value: "1200"
+
+  - type: worker
+    name: pulseboard-celery-worker
+    runtime: docker
+    rootDir: apps/api
+    dockerfilePath: ./Dockerfile.prod
+    dockerCommand: celery -A app.core.celery_app.celery_app worker --loglevel=INFO -Q ingestion --concurrency=2
+    autoDeploy: true
+    envVars:
+      - key: APP_NAME
+        value: Pulseboard Analytics
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: CELERY_BROKER_URL
+        sync: false
+      - key: CELERY_RESULT_BACKEND
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        fromService:
+          type: web
+          name: pulseboard-api
+          envVarKey: ACCESS_TOKEN_SECRET
+      - key: REFRESH_TOKEN_SECRET
+        fromService:
+          type: web
+          name: pulseboard-api
+          envVarKey: REFRESH_TOKEN_SECRET
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: REFRESH_COOKIE_PATH
+        value: /
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: PUBLIC_SHARE_BASE_URL
+        sync: false
+      - key: INGESTION_RATE_LIMIT_PER_MINUTE
+        value: "1200"
