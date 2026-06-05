@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -32,5 +32,13 @@ def create_app() -> FastAPI:
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.include_router(api_router, prefix=settings.api_v1_prefix)
-    return app
 
+    @app.get("/", include_in_schema=False)
+    async def root_health() -> dict[str, str]:
+        return {"status": "ok"}
+
+    @app.head("/", include_in_schema=False)
+    async def root_health_head() -> Response:
+        return Response(status_code=200)
+
+    return app
